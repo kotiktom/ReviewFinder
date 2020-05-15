@@ -3,38 +3,40 @@ import { View, FlatList, StyleSheet, TouchableWithoutFeedback, ImageBackground }
 import { Button } from 'react-native-elements';
 import firebase from 'firebase';
 import ReviewComponent from '../components/ReviewComponent'
-export default function AllRecepiesScreen(props) {
+export default function AllReviewsScreen(props) {
   const { navigate } = props.navigation;
   const [user, setUser] = useState('');
   const [list, setList] = useState('');
 
-  useEffect(() => {
-    const user = firebase.auth().currentUser.uid;
-    setUser(user);
-
     // Load allreviews which are under the current user
-    firebase.database()
-    .ref("recipefinder2020:/" + user + "/")
-    .on("value", (snapshot) => {
-        const data = snapshot.val();
-        if (data != null) {
-        const Reviews = Object.values(data);
-        const keys = Object.keys(data);
-
-        for (const [i, e] of Reviews.entries()) {
-          Reviews[i].key = keys[i];
-        }
-        if (Reviews != null) {
-          setList(Reviews);
-        }
-      }});
-  });
+    useEffect(() => {
+      const userId = firebase.auth().currentUser.uid;
+  
+      firebase.database()
+      .ref("recipefinder2020:/" + userId + "/")
+      .on("value", snapshot => {
+        var array = []
+        console.log(snapshot);
+        snapshot.forEach(childSnapshot => {
+          const data = childSnapshot.val();
+          if (data != null) {
+            const Reviews = Object.values(data);
+            const keys = Object.keys(data);
+    
+            for (const [i, e] of Reviews.entries()) {
+              Reviews[i].key = keys[i];
+            }
+            console.log(Reviews);
+          array = array.concat(Reviews);
+          setList(array);    
+        }})
+      });
+    }, [props]);
 
   const keyExtractor = (item) => {
-    return item.key.toString();
+    return item.ReviewId;
   };
   
-
   return (
     <View style={styles.container}>
     <ImageBackground source={{uri: 'https://i.pinimg.com/236x/1d/e7/33/1de7332240c373a99f7317900b9bf431.jpg'}} style={{width: '100%', height: '100%'}}>
@@ -47,7 +49,6 @@ export default function AllRecepiesScreen(props) {
       </View>
     }
     />
-
     </ImageBackground>
     </View>
   )
